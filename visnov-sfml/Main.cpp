@@ -1,6 +1,7 @@
 #include <SFML\Graphics.hpp>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 #include "Dialogue.hpp"
 
 int main()
@@ -11,6 +12,25 @@ int main()
 	sf::Font font;
 	if (!font.loadFromFile("fonts/Stellar-Regular.otf")) 
 		std::cout << "error loading font." << std::endl;
+
+	sf::Texture bgTexture1;
+	if (!bgTexture1.loadFromFile("bg/par_1a.bmp"))
+		std::cout << "error loading texture." << std::endl;
+	sf::Sprite bgSprite1 = sf::Sprite(bgTexture1);
+	bgSprite1.setScale(1.25f, 1.25f);
+
+	sf::Texture bgTexture2;
+	if (!bgTexture2.loadFromFile("bg/par_1b.bmp"))
+		std::cout << "error loading texture." << std::endl;
+	sf::Sprite bgSprite2 = sf::Sprite(bgTexture2);
+	bgSprite2.setScale(1.25f, 1.25f);
+
+	std::unordered_map<std::string, sf::Sprite*> spriteAssets;
+	spriteAssets["par_1a"] = &bgSprite1;
+	spriteAssets["par_1b"] = &bgSprite2;
+
+	sf::RectangleShape textBox(sf::Vector2f(800.0f, 600.0f));
+	textBox.setFillColor(sf::Color(0, 0, 0, 100));
 
 	vn::Dialogue dialogue1;
 	dialogue1.setLine("Lorem ipsum dolor sit amet,");
@@ -68,6 +88,8 @@ int main()
 		}
 		
 		window.clear();
+		window.draw(*spriteAssets["par_1b"]);
+		window.draw(textBox);
 		window.draw(text);
 		window.display();
 	}
