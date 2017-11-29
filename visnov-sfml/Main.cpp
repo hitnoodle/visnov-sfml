@@ -71,6 +71,8 @@ int main()
 	text.setPosition(10, 5);
 	text.setString(ss.str());
 
+	bool isWriting = false;
+
 	// Update loop
 
 	while (window.isOpen())
@@ -90,6 +92,7 @@ int main()
 					if (currentBlockIndex < 4)
 					{
 						currentBlockIndex++;
+						isWriting = false;
 
 						vn::Block* currentBlock = blocks[currentBlockIndex];
 						if (currentBlock->GetCommand() == "bg")
@@ -100,6 +103,7 @@ int main()
 						{
 							ss << (static_cast<vn::Dialogue*>(currentBlock)->GetLine());
 							text.setString(ss.str());
+							isWriting = true;
 						}
 					}
 					else
@@ -117,8 +121,12 @@ int main()
 		if (background != NULL) 
 			window.draw(*spriteAssets[background->GetBackgroundID()]);
 
-		window.draw(textBox);
-		window.draw(text);
+		if (isWriting)
+		{
+			window.draw(textBox);
+			window.draw(text);
+		}
+
 		window.display();
 	}
 
