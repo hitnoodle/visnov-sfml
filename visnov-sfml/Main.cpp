@@ -2,12 +2,16 @@
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
+
 #include "Dialogue.hpp"
+#include "Background.hpp"
 
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Visual Novel Framework", sf::Style::Titlebar | sf::Style::Close);
 	window.setVerticalSyncEnabled(true);
+
+	// Resources
 
 	sf::Font font;
 	if (!font.loadFromFile("fonts/Stellar-Regular.otf")) 
@@ -32,6 +36,11 @@ int main()
 	sf::RectangleShape textBox(sf::Vector2f(800.0f, 600.0f));
 	textBox.setFillColor(sf::Color(0, 0, 0, 100));
 
+	// VN Data
+
+	vn::Background bg1("par_1a");
+	vn::Background bg2("par_1b");
+
 	vn::Dialogue dialogue1;
 	dialogue1.setLine("Lorem ipsum dolor sit amet,");
 
@@ -41,21 +50,28 @@ int main()
 	vn::Dialogue dialogue3;
 	dialogue3.setLine("sed do eiusmod\ntempor incididunt ut labore et dolore magna aliqua.");
 
-	vn::Block* blocks[3];
-	blocks[0] = &dialogue1;
-	blocks[1] = &dialogue2;
-	blocks[2] = &dialogue3;
+	vn::Block* blocks[5];
+	blocks[0] = &bg1;
+	blocks[1] = &dialogue1;
+	blocks[2] = &dialogue2;
+	blocks[3] = &bg2;
+	blocks[4] = &dialogue3;
+	
+	// VN Setup
 
-	int currentBlock = 0;
+	int currentBlockIndex = -1;
+
+	vn::Background* background = NULL;
 
 	std::stringstream ss;
-	ss << (static_cast<vn::Dialogue*>(blocks[currentBlock])->GetLine());
-
 	sf::Text text;
+
 	text.setFont(font);
 	text.setCharacterSize(24);
 	text.setPosition(10, 5);
 	text.setString(ss.str());
+
+	// Update loop
 
 	while (window.isOpen())
 	{
@@ -71,15 +87,24 @@ int main()
 				if (event.mouseButton.button == sf::Mouse::Left)
 				{
 					std::cout << "Left mouse clicked." << std::endl;
-					if (currentBlock < 2)
+					if (currentBlockIndex < 4)
 					{
-						currentBlock++;
-						ss << (static_cast<vn::Dialogue*>(blocks[currentBlock])->GetLine());
-						text.setString(ss.str());
+						currentBlockIndex++;
+
+						vn::Block* currentBlock = blocks[currentBlockIndex];
+						if (currentBlock->GetCommand() == "bg")
+						{
+							background = (static_cast<vn::Background*>(currentBlock));
+						}
+						else if (currentBlock->GetCommand() == "d")
+						{
+							ss << (static_cast<vn::Dialogue*>(currentBlock)->GetLine());
+							text.setString(ss.str());
+						}
 					}
 					else
 					{
-						currentBlock = -1;
+						currentBlockIndex = -1;
 						ss.str(std::string());
 						text.setString(ss.str());
 					}
@@ -88,7 +113,10 @@ int main()
 		}
 		
 		window.clear();
-		window.draw(*spriteAssets["par_1b"]);
+
+		if (background != NULL) 
+			window.draw(*spriteAssets[background->GetBackgroundID()]);
+
 		window.draw(textBox);
 		window.draw(text);
 		window.display();

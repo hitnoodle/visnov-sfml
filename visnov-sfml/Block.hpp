@@ -14,7 +14,7 @@ namespace vn
 		Block();
 		Block(std::string id, std::string command);
 
-		std::string GetID();
-		std::string GetCommand();
+		const std::string& GetID();
+		const std::string& GetCommand();
 	};
 }

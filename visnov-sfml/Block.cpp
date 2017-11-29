@@ -16,12 +16,12 @@ namespace vn
 		m_IsFinished = false;
 	}
 
-	std::string Block::GetID()
+	const std::string& Block::GetID()
 	{
 		return m_ID;
 	}
 
-	std::string Block::GetCommand()
+	const std::string& Block::GetCommand()
 	{
 		return m_Command;
 	}

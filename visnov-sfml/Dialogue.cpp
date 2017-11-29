@@ -7,7 +7,7 @@ namespace vn
 		m_Line = line;
 	}
 
-	std::string Dialogue::GetLine()
+	const std::string& Dialogue::GetLine()
 	{
 		return m_Line;
 	}
