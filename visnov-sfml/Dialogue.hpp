@@ -11,9 +11,9 @@ namespace vn
 		std::string m_Line;
 	public:
 		Dialogue() : Block("Dialogue", "d"), m_Line("") {};
-		Dialogue(std::string line) : Block("Dialogue", "d"), m_Line(line) {};
+		Dialogue(const std::string& line) : Block("Dialogue", "d"), m_Line(line) {};
 
-		void setLine(std::string line);
+		void setLine(const std::string& line);
 		const std::string& GetLine();
 	};
 }

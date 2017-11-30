@@ -11,7 +11,7 @@ namespace vn
 		std::string m_BackgroundID;
 	public:
 		Background() : Block("Background", "bg"), m_BackgroundID("") {};
-		Background(std::string backgroundID) : Block("Background", "bg"), m_BackgroundID(backgroundID) {};
+		Background(const std::string& backgroundID) : Block("Background", "bg"), m_BackgroundID(backgroundID) {};
 
 		const std::string& GetBackgroundID();
 	};

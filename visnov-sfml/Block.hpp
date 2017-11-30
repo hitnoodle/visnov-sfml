@@ -12,7 +12,7 @@ namespace vn
 		bool m_IsFinished;
 	public:
 		Block();
-		Block(std::string id, std::string command);
+		Block(const std::string& id, const std::string& command);
 
 		const std::string& GetID();
 		const std::string& GetCommand();

@@ -9,7 +9,7 @@ namespace vn
 		m_IsFinished = false;
 	}
 
-	Block::Block(std::string id, std::string command)
+	Block::Block(const std::string& id, const std::string& command)
 	{
 		m_ID = id;
 		m_Command = command;

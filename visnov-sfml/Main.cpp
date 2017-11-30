@@ -6,6 +6,9 @@
 #include "Dialogue.hpp"
 #include "Background.hpp"
 
+// Function declarations
+sf::Texture* loadTexture(const std::string& texturePath);
+
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Visual Novel Framework", sf::Style::Titlebar | sf::Style::Close);
@@ -13,33 +16,37 @@ int main()
 
 	// Resources
 
-	sf::Font font;
-	if (!font.loadFromFile("fonts/Stellar-Regular.otf")) 
+	sf::Font g_Font;
+	if (!g_Font.loadFromFile("fonts/Stellar-Regular.otf"))
 		std::cout << "error loading font." << std::endl;
+	
+	sf::Texture* bgTexture1 = loadTexture("bg/par_1a.bmp");
+	sf::Texture* bgTexture2 = loadTexture("bg/par_1b.bmp");
 
-	sf::Texture bgTexture1;
-	if (!bgTexture1.loadFromFile("bg/par_1a.bmp"))
-		std::cout << "error loading texture." << std::endl;
-	sf::Sprite bgSprite1 = sf::Sprite(bgTexture1);
+	std::vector<sf::Texture*> g_Textures;
+	g_Textures.push_back(bgTexture1);
+	g_Textures.push_back(bgTexture2);
+
+	sf::Sprite bgSprite1 = sf::Sprite(*bgTexture1);
 	bgSprite1.setScale(1.25f, 1.25f);
 
-	sf::Texture bgTexture2;
-	if (!bgTexture2.loadFromFile("bg/par_1b.bmp"))
-		std::cout << "error loading texture." << std::endl;
-	sf::Sprite bgSprite2 = sf::Sprite(bgTexture2);
+	sf::Sprite bgSprite2 = sf::Sprite(*bgTexture2);
 	bgSprite2.setScale(1.25f, 1.25f);
 
-	std::unordered_map<std::string, sf::Sprite*> spriteAssets;
-	spriteAssets["par_1a"] = &bgSprite1;
-	spriteAssets["par_1b"] = &bgSprite2;
+	std::unordered_map<std::string, sf::Sprite*> g_Backgrounds;
+	g_Backgrounds["Background1"] = &bgSprite1;
+	g_Backgrounds["Background2"] = &bgSprite2;
 
-	sf::RectangleShape textBox(sf::Vector2f(800.0f, 600.0f));
-	textBox.setFillColor(sf::Color(0, 0, 0, 100));
+	sf::RectangleShape g_TextBox(sf::Vector2f(800.0f, 600.0f));
+	g_TextBox.setFillColor(sf::Color(0, 0, 0, 100));
+
+	//std::unordered_map<std::string, sf::Sprite*> g_Actors;
+	//std::unordered_map<int, sf::Vector2f*> g_Position;
 
 	// VN Data
 
-	vn::Background bg1("par_1a");
-	vn::Background bg2("par_1b");
+	vn::Background bg1("Background1");
+	vn::Background bg2("Background2");
 
 	vn::Dialogue dialogue1;
 	dialogue1.setLine("Lorem ipsum dolor sit amet,");
@@ -66,7 +73,7 @@ int main()
 	std::stringstream ss;
 	sf::Text text;
 
-	text.setFont(font);
+	text.setFont(g_Font);
 	text.setCharacterSize(24);
 	text.setPosition(10, 5);
 	text.setString(ss.str());
@@ -95,15 +102,20 @@ int main()
 						isWriting = false;
 
 						vn::Block* currentBlock = blocks[currentBlockIndex];
-						if (currentBlock->GetCommand() == "bg")
+						std::string currentCommand = currentBlock->GetCommand();
+						if (currentCommand == "bg")
 						{
 							background = (static_cast<vn::Background*>(currentBlock));
 						}
-						else if (currentBlock->GetCommand() == "d")
+						else if (currentCommand == "d")
 						{
 							ss << (static_cast<vn::Dialogue*>(currentBlock)->GetLine());
 							text.setString(ss.str());
 							isWriting = true;
+						}
+						else if (currentCommand == "a")
+						{
+						
 						}
 					}
 					else
@@ -119,16 +131,34 @@ int main()
 		window.clear();
 
 		if (background != NULL) 
-			window.draw(*spriteAssets[background->GetBackgroundID()]);
+			window.draw(*g_Backgrounds[background->GetBackgroundID()]);
 
 		if (isWriting)
 		{
-			window.draw(textBox);
+			window.draw(g_TextBox);
 			window.draw(text);
 		}
 
 		window.display();
 	}
 
+	// Unload resources here 
+	for (auto it = g_Textures.begin(); it != g_Textures.end(); it++)
+	{
+		delete (*it);
+		*it = NULL;
+	}
+
+	g_Textures.clear();
+
 	return 0;
+}
+
+sf::Texture* loadTexture(const std::string & texturePath)
+{
+	sf::Texture* texture = new sf::Texture();
+	if (!texture->loadFromFile(texturePath))
+		std::cout << "error loading texture " << texturePath << std::endl;
+
+	return texture;
 }

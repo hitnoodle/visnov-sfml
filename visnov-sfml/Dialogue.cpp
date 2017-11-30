@@ -2,7 +2,7 @@
 
 namespace vn
 {
-	void Dialogue::setLine(std::string line)
+	void Dialogue::setLine(const std::string& line)
 	{
 		m_Line = line;
 	}
