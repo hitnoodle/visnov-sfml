@@ -9,11 +9,12 @@
 // Variable declarations
 std::vector<sf::Texture*> g_Textures;
 std::unordered_map<std::string, sf::Sprite*>* g_Backgrounds;
+std::unordered_map<std::string, sf::Sprite*>* g_Actors;
 
 // Function declarations
 sf::Texture* loadTexture(const std::string& texturePath);
-sf::Texture* loadTexture(const std::string& texturePath, bool smooth);
 std::unordered_map<std::string, sf::Sprite*>* loadBackgrounds(const std::unordered_map<std::string, std::string>& backgroundToLoad);
+std::unordered_map<std::string, sf::Sprite*>* loadActors(const std::unordered_map<std::string, std::string>& actorToLoad);
 void DestroyResources();
 
 int main()
@@ -35,41 +36,21 @@ int main()
 	backgroundToLoad["Background2"] = "bg/par_1b.bmp";
 
 	g_Backgrounds = loadBackgrounds(backgroundToLoad);
+	backgroundToLoad.clear();
 
 	// Create our text box
 	sf::RectangleShape g_TextBox(sf::Vector2f(800.0f, 600.0f));
 	g_TextBox.setFillColor(sf::Color(0, 0, 0, 100));
 
 	// Load actor and create the actor map
-	// TODO: refactor
-	sf::Texture* actorTexture1 = loadTexture("actor/bea/bea_defa1.png", true);
-	sf::Texture* actorTexture2 = loadTexture("actor/bea/bea_defa2.png", true);
-	sf::Texture* actorTexture3 = loadTexture("actor/but/but_futekia1.png", true);
-	sf::Texture* actorTexture4 = loadTexture("actor/but/but_futekia2.png", true);
+	std::unordered_map<std::string, std::string> actorToLoad;
+	actorToLoad["bea_def_1"] = "actor/bea/bea_defa1.png";
+	actorToLoad["bea_def_2"] = "actor/bea/bea_defa2.png";
+	actorToLoad["but_def_1"] = "actor/but/but_futekia1.png";
+	actorToLoad["but_def_2"] = "actor/but/but_futekia2.png";
 
-	sf::Sprite actorBea1 = sf::Sprite(*actorTexture1);
-	sf::Sprite actorBea2 = sf::Sprite(*actorTexture2);
-	sf::Sprite actorBut1 = sf::Sprite(*actorTexture3);
-	sf::Sprite actorBut2 = sf::Sprite(*actorTexture4);
-
-	actorBut1.setOrigin(actorBut1.getTexture()->getSize().x / 2.0f, 960.f);
-	actorBut1.setScale(0.5f, 0.5f);
-
-	actorBut2.setOrigin(actorBut2.getTexture()->getSize().x / 2.0f, 960.f);
-	actorBut2.setScale(0.5f, 0.5f);
-
-	actorBea1.setOrigin(actorBea1.getTexture()->getSize().x / 2.0f, 960.f);
-	actorBea1.setScale(0.5f, 0.5f);
-
-	actorBea2.setOrigin(actorBea2.getTexture()->getSize().x / 2.0f, 960.f);
-	actorBea2.setScale(0.5f, 0.5f);
-
-	std::unordered_map<std::string, sf::Sprite*> g_Actors;
-
-	g_Actors["bea_def_1"] = &actorBea1;
-	g_Actors["bea_def_2"] = &actorBea2;
-	g_Actors["but_def_1"] = &actorBut1;
-	g_Actors["but_def_2"] = &actorBut2;
+	g_Actors = loadActors(actorToLoad);
+	actorToLoad.clear();
 
 	// Create our position array for our actor
 	sf::Vector2f* g_Position[2];
@@ -173,11 +154,11 @@ int main()
 			window.draw(*currentBackground);
 		}
 
-		g_Actors["but_def_1"]->setPosition(*g_Position[0]);
-		window.draw(*g_Actors["but_def_1"]);
+		(*g_Actors)["but_def_1"]->setPosition(*g_Position[0]);
+		window.draw(*(*g_Actors)["but_def_1"]);
 
-		g_Actors["bea_def_1"]->setPosition(*g_Position[1]);
-		window.draw(*g_Actors["bea_def_1"]);
+		(*g_Actors)["bea_def_1"]->setPosition(*g_Position[1]);
+		window.draw(*(*g_Actors)["bea_def_1"]);
 
 		if (isWriting)
 		{
@@ -196,21 +177,10 @@ int main()
 
 sf::Texture* loadTexture(const std::string & texturePath)
 {
-	return loadTexture(texturePath, false);
-}
-
-sf::Texture* loadTexture(const std::string & texturePath, bool smooth)
-{
 	sf::Texture* texture = new sf::Texture();
 
 	if (!texture->loadFromFile(texturePath))
-	{
 		std::cout << "error loading texture " << texturePath << std::endl;
-	}
-	else
-	{
-		texture->setSmooth(smooth);
-	}
 
 	return texture;
 }
@@ -236,6 +206,30 @@ std::unordered_map<std::string, sf::Sprite*>* loadBackgrounds(const std::unorder
 	return backgrounds;
 }
 
+std::unordered_map<std::string, sf::Sprite*>* loadActors(const std::unordered_map<std::string, std::string>& actorToLoad)
+{
+	// Create the actor map, remember to DELETE this
+	std::unordered_map<std::string, sf::Sprite*>* actors = new std::unordered_map<std::string, sf::Sprite*>();
+
+	for (auto it = actorToLoad.begin(); it != actorToLoad.end(); it++)
+	{
+		// Load the texture
+		sf::Texture* actorTexture = loadTexture(it->second);
+		actorTexture->setSmooth(true);
+
+		g_Textures.push_back(actorTexture);
+	
+		// Make and process the sprite
+		sf::Sprite* actorSprite = new sf::Sprite(*actorTexture);
+		actorSprite->setOrigin(actorTexture->getSize().x / 2.0f, actorTexture->getSize().y); // Origin = lower center
+		actorSprite->setScale(0.5f, 0.5f);
+
+		(*actors)[it->first] = actorSprite;
+	}
+
+	return actors;
+}
+
 void DestroyResources()
 {
 	// Delete all the background sprites
@@ -249,6 +243,18 @@ void DestroyResources()
 	g_Backgrounds->clear();
 	delete g_Backgrounds;
 	g_Backgrounds = NULL;
+
+	// Delete all the actor sprites
+	for (auto it = g_Actors->begin(); it != g_Actors->end(); it++)
+	{
+		delete it->second;
+		it->second = NULL;
+	}
+
+	// Clear the actor map
+	g_Actors->clear();
+	delete g_Actors;
+	g_Actors = NULL;
 
 	// Delete all the textures
 	for (auto it = g_Textures.begin(); it != g_Textures.end(); it++)
