@@ -6,44 +6,81 @@
 #include "Dialogue.hpp"
 #include "Background.hpp"
 
+// Variable declarations
+std::vector<sf::Texture*> g_Textures;
+std::unordered_map<std::string, sf::Sprite*>* g_Backgrounds;
+
 // Function declarations
 sf::Texture* loadTexture(const std::string& texturePath);
+sf::Texture* loadTexture(const std::string& texturePath, bool smooth);
+std::unordered_map<std::string, sf::Sprite*>* loadBackgrounds(const std::unordered_map<std::string, std::string>& backgroundToLoad);
+void DestroyResources();
 
 int main()
 {
+	/// Main application window
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Visual Novel Framework", sf::Style::Titlebar | sf::Style::Close);
 	window.setVerticalSyncEnabled(true);
 
-	// Resources
+	/// Resources
 
+	// Load our font
 	sf::Font g_Font;
 	if (!g_Font.loadFromFile("fonts/Stellar-Regular.otf"))
 		std::cout << "error loading font." << std::endl;
 	
-	sf::Texture* bgTexture1 = loadTexture("bg/par_1a.bmp");
-	sf::Texture* bgTexture2 = loadTexture("bg/par_1b.bmp");
+	// Load background and create the background map
+	std::unordered_map<std::string, std::string> backgroundToLoad;
+	backgroundToLoad["Background1"] = "bg/par_1a.bmp";
+	backgroundToLoad["Background2"] = "bg/par_1b.bmp";
 
-	std::vector<sf::Texture*> g_Textures;
-	g_Textures.push_back(bgTexture1);
-	g_Textures.push_back(bgTexture2);
+	g_Backgrounds = loadBackgrounds(backgroundToLoad);
 
-	sf::Sprite bgSprite1 = sf::Sprite(*bgTexture1);
-	bgSprite1.setScale(1.25f, 1.25f);
-
-	sf::Sprite bgSprite2 = sf::Sprite(*bgTexture2);
-	bgSprite2.setScale(1.25f, 1.25f);
-
-	std::unordered_map<std::string, sf::Sprite*> g_Backgrounds;
-	g_Backgrounds["Background1"] = &bgSprite1;
-	g_Backgrounds["Background2"] = &bgSprite2;
-
+	// Create our text box
 	sf::RectangleShape g_TextBox(sf::Vector2f(800.0f, 600.0f));
 	g_TextBox.setFillColor(sf::Color(0, 0, 0, 100));
 
-	//std::unordered_map<std::string, sf::Sprite*> g_Actors;
-	//std::unordered_map<int, sf::Vector2f*> g_Position;
+	// Load actor and create the actor map
+	// TODO: refactor
+	sf::Texture* actorTexture1 = loadTexture("actor/bea/bea_defa1.png", true);
+	sf::Texture* actorTexture2 = loadTexture("actor/bea/bea_defa2.png", true);
+	sf::Texture* actorTexture3 = loadTexture("actor/but/but_futekia1.png", true);
+	sf::Texture* actorTexture4 = loadTexture("actor/but/but_futekia2.png", true);
 
-	// VN Data
+	sf::Sprite actorBea1 = sf::Sprite(*actorTexture1);
+	sf::Sprite actorBea2 = sf::Sprite(*actorTexture2);
+	sf::Sprite actorBut1 = sf::Sprite(*actorTexture3);
+	sf::Sprite actorBut2 = sf::Sprite(*actorTexture4);
+
+	actorBut1.setOrigin(actorBut1.getTexture()->getSize().x / 2.0f, 960.f);
+	actorBut1.setScale(0.5f, 0.5f);
+
+	actorBut2.setOrigin(actorBut2.getTexture()->getSize().x / 2.0f, 960.f);
+	actorBut2.setScale(0.5f, 0.5f);
+
+	actorBea1.setOrigin(actorBea1.getTexture()->getSize().x / 2.0f, 960.f);
+	actorBea1.setScale(0.5f, 0.5f);
+
+	actorBea2.setOrigin(actorBea2.getTexture()->getSize().x / 2.0f, 960.f);
+	actorBea2.setScale(0.5f, 0.5f);
+
+	std::unordered_map<std::string, sf::Sprite*> g_Actors;
+
+	g_Actors["bea_def_1"] = &actorBea1;
+	g_Actors["bea_def_2"] = &actorBea2;
+	g_Actors["but_def_1"] = &actorBut1;
+	g_Actors["but_def_2"] = &actorBut2;
+
+	// Create our position array for our actor
+	sf::Vector2f* g_Position[2];
+
+	sf::Vector2f posLeft(200.0f, 600.f);
+	sf::Vector2f posRight(600.0f, 600.f);
+
+	g_Position[0] = &posLeft;
+	g_Position[1] = &posRight;
+
+	/// VN Data
 
 	vn::Background bg1("Background1");
 	vn::Background bg2("Background2");
@@ -64,7 +101,7 @@ int main()
 	blocks[3] = &bg2;
 	blocks[4] = &dialogue3;
 	
-	// VN Setup
+	/// VN Setup
 
 	int currentBlockIndex = -1;
 
@@ -80,7 +117,7 @@ int main()
 
 	bool isWriting = false;
 
-	// Update loop
+	/// Main application loop
 
 	while (window.isOpen())
 	{
@@ -130,8 +167,17 @@ int main()
 		
 		window.clear();
 
-		if (background != NULL) 
-			window.draw(*g_Backgrounds[background->GetBackgroundID()]);
+		if (background != NULL)
+		{
+			sf::Sprite* currentBackground = g_Backgrounds->at(background->GetBackgroundID());
+			window.draw(*currentBackground);
+		}
+
+		g_Actors["but_def_1"]->setPosition(*g_Position[0]);
+		window.draw(*g_Actors["but_def_1"]);
+
+		g_Actors["bea_def_1"]->setPosition(*g_Position[1]);
+		window.draw(*g_Actors["bea_def_1"]);
 
 		if (isWriting)
 		{
@@ -142,23 +188,75 @@ int main()
 		window.display();
 	}
 
-	// Unload resources here 
-	for (auto it = g_Textures.begin(); it != g_Textures.end(); it++)
-	{
-		delete (*it);
-		*it = NULL;
-	}
-
-	g_Textures.clear();
+	/// Unload all resources 
+	DestroyResources();
 
 	return 0;
 }
 
 sf::Texture* loadTexture(const std::string & texturePath)
 {
+	return loadTexture(texturePath, false);
+}
+
+sf::Texture* loadTexture(const std::string & texturePath, bool smooth)
+{
 	sf::Texture* texture = new sf::Texture();
+
 	if (!texture->loadFromFile(texturePath))
+	{
 		std::cout << "error loading texture " << texturePath << std::endl;
+	}
+	else
+	{
+		texture->setSmooth(smooth);
+	}
 
 	return texture;
+}
+
+std::unordered_map<std::string, sf::Sprite*>* loadBackgrounds(const std::unordered_map<std::string, std::string>& backgroundToLoad)
+{
+	// Create the background map, remember to DELETE this
+	std::unordered_map<std::string, sf::Sprite*>* backgrounds = new std::unordered_map<std::string, sf::Sprite*>();
+
+	for (auto it = backgroundToLoad.begin(); it != backgroundToLoad.end(); it++)
+	{
+		// Load the texture
+		sf::Texture* bgTexture = loadTexture(it->second);
+		g_Textures.push_back(bgTexture);
+
+		// Make and process the sprite
+		sf::Sprite* bgSprite = new sf::Sprite(*bgTexture); 
+		bgSprite->setScale(1.25f, 1.25f);
+
+		(*backgrounds)[it->first] = bgSprite;
+	}
+
+	return backgrounds;
+}
+
+void DestroyResources()
+{
+	// Delete all the background sprites
+	for (auto it = g_Backgrounds->begin(); it != g_Backgrounds->end(); it++)
+	{
+		delete it->second;
+		it->second = NULL;
+	}
+
+	// Clear the background map
+	g_Backgrounds->clear();
+	delete g_Backgrounds;
+	g_Backgrounds = NULL;
+
+	// Delete all the textures
+	for (auto it = g_Textures.begin(); it != g_Textures.end(); it++)
+	{
+		delete (*it);
+		*it = NULL;
+	}
+
+	// Clear the texture array
+	g_Textures.clear();
 }
